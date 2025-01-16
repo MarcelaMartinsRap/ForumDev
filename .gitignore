@@ -12,3 +12,17 @@ yarn-error.log*
 frontend/.next/
 frontend/out/
 frontend/build/
+
+#sequelize
+config.json
+
+# Ignorar arquivos sensíveis
+.env
+
+
+# Ignorar logs
+*.log
+
+# Ignorar arquivos de build
+dist/
+build/
