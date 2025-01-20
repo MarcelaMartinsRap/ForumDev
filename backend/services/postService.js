@@ -1,44 +1,65 @@
-const Post = require('../models/Post');
+const Post = require("../models/Post");
+const User = require("../models/User")
 
 const createPost = async (data) => {
-  return Post.create(data);
+  return await Post.create(data);
 };
 
-const getPostsByUser = async (userId) => {
-  return Post.findAll({
-    where: { usuarioId: userId },
-    order: [['createdAt', 'DESC']],
-  });
+const getAllPosts = async () => {
+  return await Post.findAll();
 };
 
 const getPostById = async (id) => {
-  return Post.findByPk(id);
+  return await Post.findByPk(id);
 };
 
 const updatePost = async (id, data) => {
-  const post = await Post.findByPk(id);
-  if (!post) throw new Error('Post não encontrado');
-  return post.update(data);
+  const [updated] = await Post.update(data, {
+    where: { id },
+  });
+  if (updated) {
+    return await Post.findByPk(id);
+  }
+  return null;
 };
 
 const deletePost = async (id) => {
-  const post = await Post.findByPk(id);
-  if (!post) throw new Error('Post não encontrado');
-  return post.destroy();
+  const deleted = await Post.destroy({
+    where: { id },
+  });
+  return deleted;
 };
 
-const likePost = async (id) => {
+const getFilteredPosts = async (column, order, limit = 10, where = {}) => {
+  return await Post.findAll({
+    order: [[column, order]],
+    limit: limit, 
+    where: where, 
+    include: [
+      {
+        model: User,
+        attributes: ["username", "avatar"],
+      },
+    ],
+  });
+};
+
+const incrementLikes = async (id) => {
   const post = await Post.findByPk(id);
-  if (!post) throw new Error('Post não encontrado');
-  post.curtidas += 1;
-  return post.save();
+  if (post) {
+    post.likes += 1;
+    await post.save();
+    return post;
+  }
+  return null;
 };
 
 module.exports = {
   createPost,
-  getPostsByUser,
+  getAllPosts,
   getPostById,
   updatePost,
   deletePost,
-  likePost,
+  getFilteredPosts,
+  incrementLikes,
 };

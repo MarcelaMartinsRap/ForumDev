@@ -1,56 +1,51 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { User } = require('../models/User');
-
-const registerUser = async (data) => {
-  const { nome, email, senha } = data;
-
- 
-  const existingUser = await User.findOne({ where: { email } });
-  if (existingUser) throw new Error('Email já está em uso.');
-
-  const hashedPassword = await bcrypt.hash(senha, 10);
-  const user = await User.create({ nome, email, senha: hashedPassword });
-  return user;
+const User = require("../models/User");
+const createUser = async (data) => {
+  return await User.create(data); 
 };
 
-const loginUser = async (data) => {
-  const { email, senha } = data;
+const getAllUsers = async () => {
+  return await User.findAll(); 
+};
+//"$2a$10$djovyayiHz6x.uZi788eHOuNhWbNdNR9TfK6YHvUZ3kodOq6FESS6",
+const getUserById = async (id) => {
+  return await User.findByPk(id);
+};
+const getUserByEmail = async (email) => {
+  return await User.findOne({ where: { email } }); 
+};
 
- 
-  const user = await User.findOne({ where: { email } });
-  if (!user || !(await bcrypt.compare(senha, user.senha))) {
-    throw new Error('Credenciais inválidas');
+const updateUser = async (id, data) => {
+  const [updated] = await User.update(data, {
+    where: { id },
+  });
+  if (updated) {
+    return await User.findByPk(id); 
   }
-
- 
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  return { token, user };
-};
-
-const getUserProfile = async (id) => {
-  const user = await User.findByPk(id);
-  if (!user) throw new Error('Usuário não encontrado');
-  return user;
-};
-
-const updateUserProfile = async (id, data) => {
-  const user = await User.findByPk(id);
-  if (!user) throw new Error('Usuário não encontrado');
-  return user.update(data);
+  return null; 
 };
 
 const deleteUser = async (id) => {
-  const user = await User.findByPk(id);
-  if (!user) throw new Error('Usuário não encontrado');
-  await user.destroy();
-  return { message: 'Usuário deletado com sucesso.' };
+  const deleted = await User.destroy({
+    where: { id },
+  });
+  return deleted; 
 };
 
-module.exports = { 
-  registerUser, 
-  loginUser, 
-  getUserProfile, 
-  updateUserProfile, 
-  deleteUser 
+const uploadAvatar = async (id, file) => {
+  const user = await User.findByPk(id); 
+  if (user) {
+    const avatar = file ? file.buffer : user.avatar; 
+    await user.update({ avatar });
+  }
+  return user; 
+};
+
+module.exports = {
+  createUser,
+  getAllUsers,
+  getUserById,
+  getUserByEmail,
+  updateUser,
+  deleteUser,
+  uploadAvatar,
 };

@@ -1,76 +1,105 @@
+const jwt = require("jsonwebtoken");
+const bcrypt = require('bcryptjs');
 const userService = require('../services/userService');
 
-
-const registerUser = async (req, res) => {
+const jwtSecret = "your_jwt_secret";
+const createUser = async (req, res) => {
   try {
-    const { nome, email, senha } = req.body;
-    if (!nome || !email || !senha) {
-      return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
-    }
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const user = await userService.createUser({
+      ...req.body,
+      password: hashedPassword,
+    });
 
-    const user = await userService.registerUser(req.body);
-    res.status(201).json(user);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(201).json({ user });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to create user", error: error.message });
   }
 };
 
 const loginUser = async (req, res) => {
   try {
-    const { email, senha } = req.body;
-    if (!email || !senha) {
-      return res.status(400).json({ error: 'Email e senha são obrigatórios.' });
+    const { email, password } = req.body;
+    const user = await userService.getUserByEmail(email);
+    const samePassword = await bcrypt.compare(password, user.password);
+    if (user && samePassword) {
+      const token = jwt.sign({ id: user.id }, jwtSecret, { expiresIn: "1h" });
+      res.status(200).json({ user, token });
+    } else {
+      res.status(401).json({ message: "Invalid email or password" });
     }
-
-    const { token, user } = await userService.loginUser(req.body);
-    res.status(200).json({ token, user });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to login", error: error.message });
   }
 };
 
-const getUserProfile = async (req, res) => {
+const uploadAvatar = async (req, res) => {
   try {
-    const user = await userService.getUserProfile(req.params.id);
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    const user = await userService.uploadAvatar(req.params.id, req.file);
+    if (user) {
+      res.status(200).json({ message: "Avatar uploaded successfully" });
+    } else {
+      res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json(user);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to upload avatar", error: error.message });
   }
 };
 
-const updateUserProfile = async (req, res) => {
+const getUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const updatedUser = await userService.updateUserProfile(id, req.body);
-    if (!updatedUser) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    const user = await userService.getUser(req.params.id);
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json(updatedUser);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to get user", error: error.message });
+  }
+};
+
+const updateUser = async (req, res) => {
+  try {
+    const user = await userService.updateUser(req.params.id, req.body);
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to update user", error: error.message });
   }
 };
 
 const deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const deletedUser = await userService.deleteUser(id);
-    if (!deletedUser) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    const result = await userService.deleteUser(req.params.id);
+    if (result) {
+      res.status(200).json({ message: "User deleted successfully" });
+    } else {
+      res.status(404).json({ message: "User not found" });
     }
-    res.status(204).send();
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to delete user", error: error.message });
   }
 };
 
-module.exports = { 
-  registerUser, 
-  loginUser, 
-  getUserProfile, 
-  updateUserProfile, 
-  deleteUser 
+module.exports = {
+  createUser,
+  loginUser,
+  uploadAvatar,
+  getUser,
+  updateUser,
+  deleteUser,
 };

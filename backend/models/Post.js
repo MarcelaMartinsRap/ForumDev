@@ -1,19 +1,47 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { Sequelize, DataTypes } = require("sequelize");
+const sequelize = require("../config/database");
+const User = require("./User")
 
-const Post = sequelize.define('Post', {
-  conteudo: {
+const Post = sequelize.define("Post", {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  title: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
   },
-  curtidas: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0
+  text: {
+    type: DataTypes.TEXT,
+    allowNull: false,
   },
-  usuarioId: {
+  createdAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
+  userId: {
     type: DataTypes.INTEGER,
-    allowNull: false
-  }
+    references: {
+      model: User,
+      key: "id",
+    },
+    allowNull: false,
+  },
+  likes: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
 });
+
+User.hasMany(Post, { foreignKey: "userId" });
+Post.belongsTo(User, { foreignKey: "userId" });
 
 module.exports = Post;
