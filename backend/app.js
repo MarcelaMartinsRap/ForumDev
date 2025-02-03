@@ -1,5 +1,6 @@
 const express = require("express");
 const { expressjwt: jwt } = require("express-jwt");
+const cors = require("cors"); 
 const sequelize = require("./config/database");
 const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
@@ -22,6 +23,15 @@ sequelize.sync().then(() => {
 });
 
 app.use(express.json());
+
+app.use(cors({
+  origin: "http://localhost:3000", 
+  credentials: true, 
+  methods: "GET,POST,PUT,DELETE,OPTIONS",
+  allowedHeaders: "Content-Type,Authorization"
+}));
+
+app.options("*", cors());
 
 const jwtSecret = "your_jwt_secret";
 
