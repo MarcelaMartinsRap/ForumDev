@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
-const bcrypt = require('bcryptjs');
-const userService = require('../services/userService');
+const bcrypt = require("bcryptjs");
+const userService = require("../services/userService");
 
 const jwtSecret = "your_jwt_secret";
 const createUser = async (req, res) => {
@@ -50,9 +50,9 @@ const uploadAvatar = async (req, res) => {
   }
 };
 
-const getUser = async (req, res) => {
+const getUserById = async (req, res) => {
   try {
-    const user = await userService.getUser(req.params.id);
+    const user = await userService.getUserById(req.params.id);
     if (user) {
       res.status(200).json(user);
     } else {
@@ -99,7 +99,7 @@ module.exports = {
   createUser,
   loginUser,
   uploadAvatar,
-  getUser,
+  getUserById,
   updateUser,
   deleteUser,
 };

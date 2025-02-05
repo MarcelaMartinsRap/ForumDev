@@ -6,7 +6,7 @@ const createUser = async (data) => {
 const getAllUsers = async () => {
   return await User.findAll(); 
 };
-//"$2a$10$djovyayiHz6x.uZi788eHOuNhWbNdNR9TfK6YHvUZ3kodOq6FESS6",
+
 const getUserById = async (id) => {
   return await User.findByPk(id);
 };

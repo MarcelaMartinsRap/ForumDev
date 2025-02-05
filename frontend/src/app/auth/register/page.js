@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { register } from "@/utils/UserService";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   TextField,
@@ -11,31 +10,39 @@ import {
   Box,
   CircularProgress,
 } from "@mui/material";
+import { register } from "@/utils/UserService";
 
 const Register = () => {
-  const [nickname, setNickname] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [profession, setProfession] = useState("");
   const [avatar, setAvatar] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false); // Estado de carregamento
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setErrorMessage("");
-    setLoading(true); // Ativa o indicador de carregamento
+    setLoading(true);
 
     if (password !== confirmPassword) {
       setErrorMessage("As senhas não coincidem!");
-      setLoading(false); // Desativa o carregamento
+      setLoading(false);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMessage("Email inválido.");
+      setLoading(false);
       return;
     }
 
     const formData = new FormData();
-    formData.append("nickname", nickname);
+    formData.append("username", username);
     formData.append("email", email);
     formData.append("password", password);
     formData.append("profession", profession);
@@ -44,15 +51,23 @@ const Register = () => {
     }
 
     try {
-      await register(formData);
-      router.push("/auth/login");
+      const response = await register(formData);
+      if (response) {
+        router.push("/auth/login");
+      }
     } catch (error) {
       console.error("Erro no cadastro", error);
       setErrorMessage("Erro ao se cadastrar. Tente novamente.");
     } finally {
-      setLoading(false); // Desativa o carregamento
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      setLoading(false);
+    };
+  }, []);
 
   return (
     <Container component="main" maxWidth="xs">
@@ -71,9 +86,9 @@ const Register = () => {
             margin="normal"
             required
             fullWidth
-            label="Nickname"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
           />
           <TextField
             variant="outlined"
@@ -129,7 +144,7 @@ const Register = () => {
             variant="contained"
             color="primary"
             sx={{ mt: 3, mb: 2 }}
-            disabled={loading} // Desabilita o botão durante o carregamento
+            disabled={loading}
           >
             {loading ? <CircularProgress size={24} /> : "Cadastrar"}
           </Button>

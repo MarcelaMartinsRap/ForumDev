@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { login } from "@/utils/UserService"; // Ajuste o caminho conforme necessário
+import { useState, useEffect } from "react";
+import { login } from "@/utils/UserService"; 
 import { useRouter } from "next/navigation";
 import { TextField, Button, Typography, Container, Box } from "@mui/material";
 
@@ -11,16 +11,28 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false); 
+
+  useEffect(() => {
+  
+    setIsMounted(true);
+    return () => {
+      
+      setIsMounted(false);
+    };
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage("");
     setLoading(true);
 
+    if (!isMounted) return; 
+
     try {
       await login(email, password);
-      // Redireciona para a página de dashboard ou outro local adequado após o login
-      router.push("/dashboard");
+      
+      router.push("/");
     } catch (error) {
       console.error("Erro no login", error);
       setErrorMessage("Email ou senha incorretos.");
@@ -28,6 +40,8 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  if (!isMounted) return null; 
 
   return (
     <Container component="main" maxWidth="xs">

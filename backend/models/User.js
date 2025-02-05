@@ -20,7 +20,7 @@ const User = sequelize.define("User", {
     allowNull:true,
    },
   avatar: {
-    type: DataTypes.BLOB("long"), // Alterado para LONGBLOB
+    type: DataTypes.BLOB("long"), 
     allowNull: true,
   },
   password: {
